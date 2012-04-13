@@ -8,7 +8,7 @@
 #include "window.h"
 #include "renderer.h"
 #include "script.h"
-#include "model.h"
+#include "scene.h"
 
 const int RUN_GAME_LOOP = 1;
 
@@ -17,6 +17,8 @@ class Engine
   Window *window;
   Renderer *renderer;
   Script *script;
+  Scene *currentScene;
+  std::vector<Scene*> scenes;
 
   std::vector<SDL_TimerID> timers;
   bool done;
@@ -26,9 +28,16 @@ class Engine
     void EventLoop();
     void HandleEvents(SDL_Event *event);
     void GameLoop();
-    void AddModel(Model *model);
+    void runWithScene(Scene *scene);
+    int print();
 
     static Uint32 GameLoopTimer(Uint32 interval, void *param);
+
+    // Setters and getters
+    Scene *getCurrentScene();
+
+  protected:
+    void bind();
 };
 
 #endif

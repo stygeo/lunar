@@ -27,14 +27,10 @@ void Renderer::Before()
 {
   glClear(GL_COLOR_BUFFER_BIT);
   glPushMatrix();
-  {
-    glLoadIdentity();
-    glTranslatef(0, 0, -.5f);
-    glutSolidSphere(0.20f, 120, 120);
-  } glPopMatrix();
+  glLoadIdentity();
 }
 
 void Renderer::After()
 {
-
+  glPopMatrix();
 }

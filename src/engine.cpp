@@ -5,8 +5,8 @@
 #include "engine.h"
 #include "window.h"
 #include "renderer.h"
-#include "model.h"
 #include "script.h"
+#include "vector3f.h"
 
 Engine::Engine()
 {
@@ -17,25 +17,18 @@ Engine::Engine()
 
   timers.push_back(SDL_AddTimer(20, GameLoopTimer, this));
 
-  lua_State* L = script->State();
-  luabind::module(L)[
-    luabind::class_<Model>("Model")
-      .def(luabind::constructor<>())
-      .def("Draw", &Model::Draw)
-  ];
-  luabind::module(L)[
-    luabind::class_<Engine>("Engine")
-      .def("AddModel", &Engine::AddModel)
-  ];
-
-  luabind::globals(L)["engine"] = this;
-
-  script->Run();
+  // Bind objects to Lua
+  bind();
 }
 
-void Engine::AddModel(Model *model)
+void Engine::runWithScene(Scene *scene)
 {
-  std::cout << "Received object: " << model << std::endl;
+  currentScene = scene;
+  scenes.push_back(scene);
+
+  script->Run();
+  // Enter the event loop
+  EventLoop();
 }
 
 void Engine::EventLoop()
@@ -68,9 +61,9 @@ void Engine::HandleEvents(SDL_Event *event)
 void Engine::GameLoop()
 {
   renderer->Before();
-  {
 
-  }
+  currentScene->draw();
+
   renderer->After();
 
   window->Swap();
@@ -88,4 +81,32 @@ Uint32 Engine::GameLoopTimer(Uint32 interval, void *param)
   SDL_PushEvent(&event);
 
   return interval;
+}
+
+void Engine::bind()
+{
+  lua_State* L = script->State();
+
+  Vector3f::bind(L);
+  Scene::bind(L);
+
+  luabind::module(L)[
+    luabind::class_<Engine>("Engine")
+      .def("currentScene", &Engine::getCurrentScene)
+      .def("print", &Engine::print)
+  ];
+
+  luabind::globals(L)["engine"] = this;
+}
+
+int Engine::print()
+{
+  return 1000;
+}
+
+// Setters and getters
+#pragma mark "Setters and gettings"
+Scene *Engine::getCurrentScene()
+{
+  return currentScene;
 }
