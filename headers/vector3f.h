@@ -13,6 +13,16 @@ struct Vector3f
   static void bind(lua_State *L);
 };
 
+struct Colorf
+{
+  Colorf(float r, float g, float b, float a) :
+    r(r), g(g), b(b), a(a) {}
+
+  float r,g,b,a;
+
+  static void bind(lua_State *L);
+};
+
 Vector3f MakeVector3f(float x, float y, float z);
 
 #endif

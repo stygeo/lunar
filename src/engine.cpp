@@ -7,6 +7,8 @@
 #include "renderer.h"
 #include "script.h"
 #include "vector3f.h"
+#include "event.h"
+#include "event_handler.h"
 
 Engine::Engine()
 {
@@ -15,7 +17,7 @@ Engine::Engine()
   script = new Script();
   done = false;
 
-  timers.push_back(SDL_AddTimer(20, GameLoopTimer, this));
+  timers.push_back(SDL_AddTimer(20, Engine::GameLoopTimer, this));
 
   // Bind objects to Lua
   bind();
@@ -87,7 +89,11 @@ void Engine::bind()
 {
   lua_State* L = script->State();
 
+  Colorf::bind(L);
   Vector3f::bind(L);
+
+  Event::bind(L);
+  EventHandler::bind(L);
   Scene::bind(L);
 
   luabind::module(L)[

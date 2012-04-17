@@ -19,3 +19,18 @@ Vector3f MakeVector3f(float x, float y, float z)
 {
   return Vector3f(x, y, z);
 }
+
+// -------------------
+
+void Colorf::bind(lua_State *L)
+{
+  luabind::module(L) [
+    luabind::class_<Colorf>("Colorf")
+      .def(luabind::constructor<float, float, float, float>())
+      .def_readwrite("r", &Colorf::r)
+      .def_readwrite("g", &Colorf::g)
+      .def_readwrite("b", &Colorf::b)
+      .def_readwrite("a", &Colorf::a)
+  ];
+}
+
