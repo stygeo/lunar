@@ -1,8 +1,8 @@
-#ifndef NODE_H
-#define NODE_H
+#pragma once
 
 #include <vector>
 #include "vector3f.h"
+#include "frame.h"
 
 class Node
 {
@@ -10,6 +10,7 @@ class Node
     std::vector<Node*> childs;
     Vector3f position;
     Colorf color;
+    Frame *frame;
 
   public:
     Node();
@@ -28,5 +29,3 @@ class Node
 
     static void bind(lua_State *L);
 };
-
-#endif

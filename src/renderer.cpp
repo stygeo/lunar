@@ -44,7 +44,7 @@ Renderer::Renderer(Window *window) :
   glLightfv(GL_LIGHT0, GL_POSITION, position);
 
   glEnable(GL_LIGHTING);
-  //glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT0);
 
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);

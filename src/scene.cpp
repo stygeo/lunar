@@ -26,3 +26,4 @@ void Scene::bind(lua_State *L)
       .def("addChild", &Scene::addChild)
   ];
 }
+

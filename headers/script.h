@@ -1,5 +1,4 @@
-#ifndef SCRIPT_H
-#define SCRIPT_H
+#pragma once
 
 extern "C" {
   #include <lua.h>
@@ -7,17 +6,31 @@ extern "C" {
   #include <lualib.h>
 }
 #include <luabind/luabind.hpp>
+#include "event_machine.h"
 
 class Script
 {
+  static Script *singleton;
+
   lua_State *L;
+  lua_State *thread;
+  bool running;
+
   public:
     Script();
     ~Script();
 
-    void Run();
+    bool dofile(std::string fileName);
 
-    lua_State *State() { return L; }
+    lua_State *State() { return thread; }
+    int resume(float delta);
+    static int yield(lua_State *S);
+
+    static Script *Get() {
+      if(!singleton)
+        singleton = new Script();
+
+      return singleton;
+    }
 };
 
-#endif

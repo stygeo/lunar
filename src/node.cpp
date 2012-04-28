@@ -6,21 +6,29 @@
 
 #include "node.h"
 #include "vector3f.h"
+#include "event_machine.h"
+
 
 Node::Node() :
   position(MakeVector3f(.0,.0,.0)),
   color(Colorf(0,0,0,0))
-{}
+{
+  EventMachine::Get()->fireEvent(NODE_CREATED);
+}
 
 Node::Node(Vector3f position) :
   position(position),
   color(Colorf(0,0,0,0))
-{}
+{
+  EventMachine::Get()->fireEvent(NODE_CREATED);
+}
 
 Node::Node(float x, float y, float z) :
   position(MakeVector3f(x, y, z)),
   color(Colorf(0,0,0,0))
-{}
+{
+  EventMachine::Get()->fireEvent(NODE_CREATED);
+}
 
 void Node::draw()
 {
@@ -33,6 +41,7 @@ void Node::draw()
 
     //glutSolidSphere(0.20f, 120, 120);
     glColor3f(color.r, color.g, color.b);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBegin(GL_QUADS);          // Start Drawing Quads
         // Front Face
         glNormal3f( 0.0f, 0.0f, 1.0f);      // Normal Facing Forward
@@ -71,6 +80,7 @@ void Node::draw()
         glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);  // Top Right Of The Texture and Quad
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
     glEnd();                    // Done Drawing Quads
+    glDisable(GL_BLEND);
 
     std::vector<Node*>::iterator it = childs.begin();
     for(;it != childs.end(); ++it)
@@ -112,7 +122,9 @@ Colorf Node::getColor()
 
 void Node::bind(lua_State *L)
 {
+#ifndef DEBUG
   std::cout << "Binding Node to Lua" << std::endl;
+#endif
 
   luabind::module(L) [
     luabind::class_<Node>("Node")

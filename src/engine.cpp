@@ -1,26 +1,34 @@
 #include <iostream>
+#include <time.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_OpenGL.h>
 
+#include "config.h"
 #include "engine.h"
 #include "window.h"
 #include "renderer.h"
 #include "script.h"
 #include "vector3f.h"
+#include "event_machine.h"
 #include "event.h"
-#include "event_handler.h"
+#include "frame.h"
+
 
 Engine::Engine()
 {
+  std::cout << "Initializing Lunar " << LU_VERSION << std::endl;
+
   window = new Window(600, 600);
   renderer = new Renderer(window);
-  script = new Script();
+  script = Script::Get();
   done = false;
 
   timers.push_back(SDL_AddTimer(20, Engine::GameLoopTimer, this));
 
   // Bind objects to Lua
   bind();
+
+  ltime = SDL_GetTicks();
 }
 
 void Engine::runWithScene(Scene *scene)
@@ -28,7 +36,7 @@ void Engine::runWithScene(Scene *scene)
   currentScene = scene;
   scenes.push_back(scene);
 
-  script->Run();
+  script->dofile("main.lua");
   // Enter the event loop
   EventLoop();
 }
@@ -51,19 +59,26 @@ void Engine::EventLoop()
 
 void Engine::HandleEvents(SDL_Event *event)
 {
+  unsigned int ctime = SDL_GetTicks();
+  float delta = (float)(ctime - ltime)/100.0f;
+  ltime = ctime;
+  luabind::globals(script->State())["LU_DELTA"] = delta;
+
   switch(event->user.code) {
     case RUN_GAME_LOOP:
-      GameLoop();
+      GameLoop(delta);
       break;
     default:
       break;
   }
 }
 
-void Engine::GameLoop()
+void Engine::GameLoop(float delta)
 {
   renderer->Before();
+  EventMachine::Get()->fireEvent(PLAYER_ENTER);
 
+  script->resume(delta);
   currentScene->draw();
 
   renderer->After();
@@ -90,24 +105,17 @@ void Engine::bind()
   lua_State* L = script->State();
 
   Colorf::bind(L);
+  EventReceiver::bind(L);
   Vector3f::bind(L);
-
-  Event::bind(L);
-  EventHandler::bind(L);
   Scene::bind(L);
+  Frame::bind(L);
 
   luabind::module(L)[
     luabind::class_<Engine>("Engine")
       .def("currentScene", &Engine::getCurrentScene)
-      .def("print", &Engine::print)
   ];
 
   luabind::globals(L)["engine"] = this;
-}
-
-int Engine::print()
-{
-  return 1000;
 }
 
 // Setters and getters

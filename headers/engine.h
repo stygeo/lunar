@@ -14,6 +14,8 @@ const int RUN_GAME_LOOP = 1;
 
 class Engine
 {
+  unsigned int ltime;
+
   Window *window;
   Renderer *renderer;
   Script *script;
@@ -27,9 +29,8 @@ class Engine
     Engine();
     void EventLoop();
     void HandleEvents(SDL_Event *event);
-    void GameLoop();
+    void GameLoop(float delta);
     void runWithScene(Scene *scene);
-    int print();
 
     static Uint32 GameLoopTimer(Uint32 interval, void *param);
 
