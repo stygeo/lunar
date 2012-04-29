@@ -122,10 +122,6 @@ Colorf Node::getColor()
 
 void Node::bind(lua_State *L)
 {
-#ifndef DEBUG
-  std::cout << "Binding Node to Lua" << std::endl;
-#endif
-
   luabind::module(L) [
     luabind::class_<Node>("Node")
       .def(luabind::constructor<>())

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 extern "C" {
   #include <lua.h>
@@ -10,27 +11,13 @@ extern "C" {
 
 class Script
 {
-  static Script *singleton;
+  int luaState;
 
   lua_State *L;
-  lua_State *thread;
-  bool running;
 
   public:
-    Script();
-    ~Script();
+    Script(lua_State *L, std::string file);
 
-    bool dofile(std::string fileName);
-
-    lua_State *State() { return thread; }
-    int resume(float delta);
-    static int yield(lua_State *S);
-
-    static Script *Get() {
-      if(!singleton)
-        singleton = new Script();
-
-      return singleton;
-    }
+    void doScript();
 };
 

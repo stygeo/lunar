@@ -7,7 +7,7 @@ void EventMachine::addReceiver(EventReceiver *receiver)
 	receivers.push_back(receiver);
 }
 
-void EventMachine::fireEvent(unsigned int event)
+void EventMachine::fireEvent(std::string event)
 {
   std::vector<EventReceiver *>::iterator it = receivers.begin();
   for(;it != receivers.end(); ++it)

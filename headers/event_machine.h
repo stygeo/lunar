@@ -14,7 +14,7 @@ class EventMachine
 	std::vector<EventReceiver *> receivers;
 	public:
 		void addReceiver(EventReceiver *receiver);
-		void fireEvent(unsigned int event);
+		void fireEvent(std::string event);
 
     // Singleton methods
     static EventMachine *Get() {

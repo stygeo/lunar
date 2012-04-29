@@ -1,0 +1,47 @@
+lua_State *State() { return thread; }
+int resume(float delta);
+static int yield(lua_State *S);
+
+int Script::yield(lua_State *L)
+{
+  return lua_yield(L, 1);
+}
+
+int Script::resume(float delta)
+{
+  if(!running) return -1;
+
+  int status;
+  if(lua_isstring(thread, -1)) {
+    std::cout << "Error in script: " << lua_tostring(thread, -1);
+  }
+
+  status = lua_resume(thread, 0);
+  if(status == LUA_YIELD) {
+    // Handle yielding
+  } else {
+    running = false;
+    if(status == LUA_ERRRUN && lua_isstring(thread, -1)) {
+      std::cout << "Uncaught Exception:\n" << lua_tostring(thread, -1) << std::endl;
+      lua_pop(thread, -1);
+    } else {
+      std::cout << "No more yields. Exiting loop" << std::endl;
+    }
+  }
+
+  return status;
+}
+
+bool Script::dofile(std::string fileName)
+{
+  running = true;
+  if(luaL_loadfile(thread, fileName.c_str()))
+  {
+    std::cout << lua_tostring(thread, -1) << std::endl;
+
+    return true;
+  }
+
+  return false;
+}
+

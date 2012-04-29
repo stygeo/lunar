@@ -8,11 +8,11 @@
 #include "window.h"
 #include "renderer.h"
 #include "script.h"
+#include "script_engine.h"
 #include "vector3f.h"
 #include "event_machine.h"
 #include "event.h"
 #include "frame.h"
-
 
 Engine::Engine()
 {
@@ -20,13 +20,12 @@ Engine::Engine()
 
   window = new Window(600, 600);
   renderer = new Renderer(window);
-  script = Script::Get();
   done = false;
-
-  timers.push_back(SDL_AddTimer(20, Engine::GameLoopTimer, this));
 
   // Bind objects to Lua
   bind();
+
+  timers.push_back(SDL_AddTimer(20, Engine::GameLoopTimer, this));
 
   ltime = SDL_GetTicks();
 }
@@ -36,7 +35,9 @@ void Engine::runWithScene(Scene *scene)
   currentScene = scene;
   scenes.push_back(scene);
 
-  script->dofile("main.lua");
+  ScriptEngine::Get()->dofile("main.lua");
+  EventMachine::Get()->fireEvent(INIT_MAIN_SCENE);
+
   // Enter the event loop
   EventLoop();
 }
@@ -62,7 +63,7 @@ void Engine::HandleEvents(SDL_Event *event)
   unsigned int ctime = SDL_GetTicks();
   float delta = (float)(ctime - ltime)/100.0f;
   ltime = ctime;
-  luabind::globals(script->State())["LU_DELTA"] = delta;
+  luabind::globals(ScriptEngine::Get()->State())["LU_DELTA"] = delta;
 
   switch(event->user.code) {
     case RUN_GAME_LOOP:
@@ -76,10 +77,11 @@ void Engine::HandleEvents(SDL_Event *event)
 void Engine::GameLoop(float delta)
 {
   renderer->Before();
-  EventMachine::Get()->fireEvent(PLAYER_ENTER);
 
-  script->resume(delta);
+  //script->resume(delta);
   currentScene->draw();
+
+  EventMachine::Get()->fireEvent(RENDER_PASS);
 
   renderer->After();
 
@@ -102,7 +104,7 @@ Uint32 Engine::GameLoopTimer(Uint32 interval, void *param)
 
 void Engine::bind()
 {
-  lua_State* L = script->State();
+  lua_State* L = ScriptEngine::Get()->State();
 
   Colorf::bind(L);
   EventReceiver::bind(L);
@@ -116,10 +118,11 @@ void Engine::bind()
   ];
 
   luabind::globals(L)["engine"] = this;
+  luabind::globals(L)["LU_DELTA"] = 0;
 }
 
 // Setters and getters
-#pragma mark "Setters and gettings"
+#pragma mark "Setters and getters"
 Scene *Engine::getCurrentScene()
 {
   return currentScene;

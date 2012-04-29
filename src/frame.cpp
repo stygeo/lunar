@@ -2,11 +2,12 @@
 
 #include "frame.h"
 #include "script.h"
+#include "script_engine.h"
 #include "event_machine.h"
 
-void Frame::fireEvent(unsigned int event)
+void Frame::fireEvent(std::string event)
 {
-  std::vector<unsigned int>::iterator it = events.begin();
+  std::vector<std::string>::iterator it = events.begin();
   for(;it != events.end(); ++it)
   {
     if((*it) == event)
@@ -15,7 +16,12 @@ void Frame::fireEvent(unsigned int event)
       for(;itv != callbacks.end(); ++itv)
       {
         // Call the lua callback
-        (*itv)(this, event);
+        try {
+          (*itv)(this, event);
+        } catch(luabind::error& e) {
+          luabind::object error_message(luabind::from_stack(e.state(), -1));
+          std::cout << "CallbackError: " << error_message << std::endl;
+        }
       }
     }
   }
@@ -40,10 +46,11 @@ void Frame::bind(lua_State *L)
 
 Frame *CreateFrame(std::string name, std::string ext)
 {
-  lua_State *L = Script::Get()->State();
+  lua_State *L = ScriptEngine::Get()->State();
   Frame *frame = new Frame(L);
   EventMachine::Get()->addReceiver(frame);
   std::cout << "("<< ext <<")" << ": '"<< name << "' created" << std::endl;
 
   return frame;
 }
+

@@ -7,7 +7,6 @@
 
 #include "window.h"
 #include "renderer.h"
-#include "script.h"
 #include "scene.h"
 
 const int RUN_GAME_LOOP = 1;
@@ -18,7 +17,6 @@ class Engine
 
   Window *window;
   Renderer *renderer;
-  Script *script;
   Scene *currentScene;
   std::vector<Scene*> scenes;
 

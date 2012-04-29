@@ -7,73 +7,20 @@ extern "C" {
 }
 #include <luabind/luabind.hpp>
 
-Script *Script::singleton = 0;
-
-Script::Script()
+Script::Script(lua_State *R, std::string file)
 {
-  L = lua_open();
-
-  luabind::open(L);
-  luaL_openlibs(L);
-  lua_register(L, "yield", yield);
-  lua_register(L, "LU_WaitEvent", yield);
-
-  // Setting up a thread for lua
-  thread = lua_newthread(L);
-  //lua_newtable(thread);
-  //lua_newtable(thread);
-  //lua_pushliteral(thread, "__index");
-  //lua_pushvalue(thread, LUA_GLOBALSINDEX);
-  //lua_settable(thread, -3);
-  //lua_setmetatable(thread, -2);
-  //lua_replace(thread, LUA_GLOBALSINDEX);
-
-  std::cout << "Initialized " << LUA_VERSION << std::endl;
-}
-
-Script::~Script()
-{
-  lua_close(L);
-}
-
-int Script::yield(lua_State *L)
-{
-  return lua_yield(L, 1);
-}
-
-int Script::resume(float delta)
-{
-  if(!running) return -1;
-
-  int status;
-  if(lua_isstring(thread, -1)) {
-    std::cout << "Error in script: " << lua_tostring(thread, -1);
+  L = R;
+  luaState = luaL_loadfile(L, file.c_str());
+  if(luaState) {
+    // Pop error message of the stack
+    std::cout << lua_tostring(L, -1) << std::endl;
   }
-
-  status = lua_resume(thread, 0);
-  if(status == LUA_YIELD) {
-    // Handle yielding
-  } else {
-    running = false;
-    if(status == LUA_ERRRUN && lua_isstring(thread, -1)) {
-      std::cout << "Uncaught Exception:\n" << lua_tostring(thread, -1) << std::endl;
-      lua_pop(thread, -1);
-    }
-  }
-
-  return status;
 }
 
-bool Script::dofile(std::string fileName)
+void Script::doScript()
 {
-  running = true;
-  if(luaL_loadfile(thread, fileName.c_str()))
-  {
-    std::cout << lua_tostring(thread, -1) << std::endl;
-
-    return false;
-  }
-
-  return true;
+  // Duplicate top stack so we are able to re-run the script
+  lua_pushvalue(L, -1);
+  lua_pcall(L, 0, LUA_MULTRET, 0);
 }
 

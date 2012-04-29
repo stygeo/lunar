@@ -10,7 +10,7 @@ class Frame : public EventReceiver
   public:
     Frame(lua_State *L) : L(L) {};
     void onEvent(luabind::object cb);
-    void fireEvent(unsigned int event);
+    void fireEvent(std::string event);
     void afterEvent(unsigned int event) {};
 
     static void bind(lua_State *L);
